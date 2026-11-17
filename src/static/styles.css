@@ -90,13 +90,59 @@ section h3 {
 }
 
 .participants ul {
-  padding-left: 20px;
+  padding-left: 0;
+  list-style: none;
 }
 
 .participants li {
-  padding: 2px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 0;
   color: #424a60;
+}
+
+.participant-name {
+  min-width: 0;
   overflow-wrap: anywhere;
+}
+
+.remove-participant-button {
+  display: grid;
+  flex: 0 0 32px;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 6px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background-color: transparent;
+  color: #b42318;
+}
+
+.remove-participant-button:hover {
+  background-color: #fee4e2;
+}
+
+.remove-participant-button:focus-visible {
+  outline: 2px solid #b42318;
+  outline-offset: 2px;
+}
+
+.remove-participant-button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.remove-participant-button svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
 }
 
 .participants p {

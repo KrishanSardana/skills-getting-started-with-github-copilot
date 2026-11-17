@@ -7,7 +7,10 @@ document.addEventListener("DOMContentLoaded", () => {
   // Function to fetch activities from API
   async function fetchActivities() {
     try {
-      const response = await fetch("/activities");
+      const response = await fetch("/activities", { cache: "no-store" });
+      if (!response.ok) {
+        throw new Error(`Failed to load activities (${response.status})`);
+      }
       const activities = await response.json();
 
       // Clear loading message
@@ -52,7 +55,61 @@ document.addEventListener("DOMContentLoaded", () => {
           const participantsList = document.createElement("ul");
           details.participants.forEach((participant) => {
             const participantItem = document.createElement("li");
-            participantItem.textContent = participant;
+
+            const participantName = document.createElement("span");
+            participantName.className = "participant-name";
+            participantName.textContent = participant;
+            participantItem.appendChild(participantName);
+
+            const removeButton = document.createElement("button");
+            removeButton.type = "button";
+            removeButton.className = "remove-participant-button";
+            removeButton.setAttribute("aria-label", `Unregister ${participant} from ${name}`);
+            removeButton.title = `Unregister ${participant}`;
+
+            const removeIcon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            removeIcon.setAttribute("viewBox", "0 0 24 24");
+            removeIcon.setAttribute("aria-hidden", "true");
+            removeIcon.setAttribute("focusable", "false");
+            const iconPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            iconPath.setAttribute(
+              "d",
+              "M4 7h16M10 11v6m4-6v6M5 7l1 14h12l1-14M9 7V4h6v3M3 7h18"
+            );
+            removeIcon.appendChild(iconPath);
+            removeButton.appendChild(removeIcon);
+
+            removeButton.addEventListener("click", async () => {
+              removeButton.disabled = true;
+              try {
+                const response = await fetch(
+                  `/activities/${encodeURIComponent(name)}/signup?email=${encodeURIComponent(participant)}`,
+                  { method: "DELETE" }
+                );
+                const result = await response.json();
+
+                if (!response.ok) {
+                  throw new Error(result.detail || "Failed to unregister");
+                }
+
+                messageDiv.textContent = result.message;
+                messageDiv.className = "success";
+                await fetchActivities();
+              } catch (error) {
+                messageDiv.textContent =
+                  error instanceof Error ? error.message : "Failed to unregister. Please try again.";
+                messageDiv.className = "error";
+                removeButton.disabled = false;
+                console.error("Error unregistering participant:", error);
+              }
+
+              messageDiv.classList.remove("hidden");
+              setTimeout(() => {
+                messageDiv.classList.add("hidden");
+              }, 5000);
+            });
+
+            participantItem.appendChild(removeButton);
             participantsList.appendChild(participantItem);
           });
           participantsSection.appendChild(participantsList);
@@ -99,7 +156,7 @@ document.addEventListener("DOMContentLoaded", () => {
         messageDiv.textContent = result.message;
         messageDiv.className = "success";
         signupForm.reset();
-        fetchActivities();
+        await fetchActivities();
       } else {
         messageDiv.textContent = result.detail || "An error occurred";
         messageDiv.className = "error";
